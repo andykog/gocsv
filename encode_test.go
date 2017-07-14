@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func assertLine(t *testing.T, expected, actual []string) {
@@ -44,6 +45,23 @@ func Test_writeTo(t *testing.T) {
 	assertLine(t, []string{"foo", "BAR", "Baz", "Quux", "Blah", "SPtr"}, lines[0])
 	assertLine(t, []string{"f", "1", "baz", "0.1", "2", "*string"}, lines[1])
 	assertLine(t, []string{"e", "3", "b", "0.46153846153846156", "", ""}, lines[2])
+}
+
+func Test_writeTo_Time(t *testing.T) {
+	b := bytes.Buffer{}
+	e := &encoder{out: &b}
+	s := []DateTime{
+		{Foo: time.Unix(60, 0)},
+	}
+	if err := writeTo(csv.NewWriter(e.out), s, true); err != nil {
+		t.Fatal(err)
+	}
+
+	lines, err := csv.NewReader(&b).ReadAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertLine(t, []string{"1970-01-01T03:01:00+03:00"}, lines[0])
 }
 
 func Test_writeTo_NoHeaders(t *testing.T) {
